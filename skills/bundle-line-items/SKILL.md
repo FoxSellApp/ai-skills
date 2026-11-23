@@ -29,7 +29,7 @@ Place this immediately after the line item's title/variant markup, inside the `f
   <ul class="cart-items__bundle list-unstyled">
     {%- for component in item.item_components -%}
       <li>
-        {{- component.title -}}
+        {{- component.title | escape -}}
         {%- if component.quantity > 1 -%}
           <span> × {{ component.quantity }}</span>
         {%- endif -%}
@@ -38,6 +38,8 @@ Place this immediately after the line item's title/variant markup, inside the `f
   </ul>
 {%- endif -%}
 ```
+
+Escape component and variant titles at the HTML output boundary so characters such as `<`, `>`, `&`, and quotes render as text rather than markup. Keep the raw variant title for the `Default Title` comparison.
 
 Match the surrounding markup's indentation and whitespace-control style (`{%-`/`-%}`) rather than copy-pasting blind — themes are inconsistent about this and stray whitespace shows up in the cart.
 
@@ -65,9 +67,9 @@ If the bundle's components have variant options worth surfacing (e.g. "Color: Re
 
 ```liquid
 <li>
-  {{- component.title -}}
+  {{- component.title | escape -}}
   {%- if component.variant.title != "Default Title" -%}
-    <span> ({{ component.variant.title }})</span>
+    <span> ({{ component.variant.title | escape }})</span>
   {%- endif -%}
   {%- if component.quantity > 1 -%}
     <span> × {{ component.quantity }}</span>
@@ -79,7 +81,7 @@ Only add this if the user asks for it or the store's bundles actually vary by op
 
 ## 5. Verify
 
-There's no good way to unit-test theme Liquid, so verify by hand:
+Verify the rendered snippets with representative title and quantity fixtures, then check the theme integration by hand:
 
 1. `shopify theme dev` (or push to a development theme) and preview the store.
 2. Add a bundle product to the cart.
@@ -87,3 +89,4 @@ There's no good way to unit-test theme Liquid, so verify by hand:
 4. Go to `/cart` — confirm the same for the full cart page.
 5. Check a cart with a bundle whose component quantity is 1 and one with quantity >1, to confirm the `×` suffix only appears when expected.
 6. Check mobile width — the component list shouldn't overflow or collide with price/remove controls.
+7. Use component and variant titles containing `<b>Sample</b>`, `&`, and quotes in a development fixture. Confirm both the basic and optional variant examples display literal text without creating elements; `Default Title` stays hidden and quantity behavior is unchanged.
